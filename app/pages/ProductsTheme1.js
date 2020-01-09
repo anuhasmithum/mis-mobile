@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, FlatList, StatusBar, Text } from 'react-native';
+import { View, StyleSheet, FlatList, StatusBar, Text, ActivityIndicator } from 'react-native';
 import { connect } from 'react-redux';
 import ProductTheme1 from '../components/ProductsTheme1.component';
 import { addToCart } from '../redux/actions/cartActions';
 import { fetchProducts } from '../../android/redux/actions/productAction';
 import Cart from '../components/Cart.component';
-import Search from '../components/Search.component'
 import { Body, Container, Header, Icon, Left, Title, Right, } from "native-base";
+import { SearchBar } from 'react-native-elements';
 import Slider from '../components/Slider.component';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
-import { getTheme } from '../styles/theme.style';
-
 import axios from "axios"
-const apiGetThemes = `http://192.168.8.100:3000/api/getTheme`;
+import property from '../../config'
 
+const apiGetThemes = `${property.BASE_URL}getTheme`
+const apiGetProduct = `${property.BASE_URL}productlist`
 
 class ProductsTheme1 extends Component {
 
@@ -22,84 +22,151 @@ class ProductsTheme1 extends Component {
 
   }
   state = {
-    themeColors: ''
+    themeColors: '',
+    isLoading: true,
+    search: '',
+    sliderbox: ''
 
   }
 
-  addToCart = () => {
-    this.props.addItemsToCart(this.props.item)
-  }
+  // addToCart = () => {
+  //   // this.props.addItemsToCart(this.props.item)
+  // }
 
   componentDidMount = () => {
 
     axios.get(apiGetThemes).then(res => {
       const data = res.data;
       this.setState({ themeColors: data })
+      this.setState({ sliderbox: data.sbox })
     }).catch((error) => {
       console.error(`Error reddda is : ${error}`);
     });
 
 
     this.props.fetchProducts();
+
+    //////////////////////////////////////////////
+
+    axios.get(apiGetProduct).then(res => {
+
+      const dataProducts = res.data;
+      this.setState({ dataSource: dataProducts })
+    }).catch((error) => {
+      console.error(`Error reddda is : ${error}`);
+    });
   }
 
   addItemsToCart = (product) => {
     this.props.addToCart(product);
   }
 
+  //////////////////////////////////////////////////////
+
+  SearchFilterFunction(text) {
+    const { products } = this.props
+    this.setState({ sliderbox: false })
+    //passing the inserted text in textinput
+    const newData = products.filter(function (item) {
+      //applying filter for the inserted text in search bar
+      const itemData = item.productName ? item.productName.toUpperCase() : ''.toUpperCase();
+      const textData = text.toUpperCase();
+      return itemData.indexOf(textData) > -1;
+    });
+
+    this.setState({
+      //setting the filtered newData on datasource
+      //After setting the data it will automatically re-render the view
+      dataSource: newData,
+      search: text,
+      isLoading: false
+    });
+    if (!text) {
+      this.setState({ sliderbox: true })
+    }
+
+  }
+
+  /////////////////////////////////////////////////////////////
+
+  renderHeader = () => {
+    const { navigation } = this.props
+    return (
+      <Header style={{ backgroundColor: this.state.themeColors.color }} >
+
+        <Left style={{ flexDirection: 'row' }}>
+          <Icon onPress={() => this.props.navigation.openDrawer()} name="md-menu" style={{ color: 'white', marginRight: 15 }} />
+        </Left>
+        <Body style={{ flex: 1 }}>
+          <Title>New Products</Title>
+
+        </Body>
+        <Right style={{ flexDirection: 'row', }}>
+          <Cart navigation={navigation} style={{ alignItems: 'center' }} />
+        </Right>
+      </Header>
+    )
+  }
 
 
+  renderSlider = () => {
 
+    if (this.state.themeColors.sbox) {
+      return (
+        <View style={{ flex: 1, height: 'auto' }}>
+          <Slider></Slider>
+        </View>
+      )
+    }
+  }
+
+  renderFooter = () => {
+    // if (this.state.loading) return null;
+
+    return (
+      <View
+        style={{ paddingVertical: 3, borderTopWidth: 1, borderColor: "#aaa", backgroundColor: '#ccc' }}
+      >
+        <ActivityIndicator animating size='small' />
+      </View>
+    )
+  }
+  ////////////////////////////////////////////////////////////////////////////
 
   render() {
     const { products, navigation } = this.props
-    //   const headerColor = getTheme.color  //'getTheme.statusbarcolor'
-    // const statusbarcolor = "black"
-    //  // alert(this.statusbarcolor)
 
     return (
 
       <Container style={{ flexDirection: 'column', }}>
 
-        <Header style={{ backgroundColor: this.state.themeColors.color }} >
+        {this.renderHeader()}
 
-          <Left style={{ flexDirection: 'row' }}>
-            <Icon onPress={() => this.props.navigation.openDrawer()} name="md-menu" style={{ color: 'white', marginRight: 15 }} />
-          </Left>
-          
-          <Body style={{ flex: 1 }}>
-            <Title>New Products</Title>
-          </Body>
-
-          <Right style={{ flexDirection: 'row', }}>
-            <Cart navigation={navigation} style={{ alignItems: 'center' }} />
-          </Right>
-        </Header>
-
-        {/* </View> */}
-
-        <View style={{ height: 55, }}>
-          <Search ></Search>
-        </View>
-        <ScrollView >
+        <SearchBar
+          round
+          searchIcon={{ size: 24 }}
+          onChangeText={text => this.SearchFilterFunction(text)}
+          onClear={text => this.SearchFilterFunction('')}
+          placeholder="Type Here..."
+          value={this.state.search}
+          containerStyle={{ backgroundColor: this.state.themeColors.color, }}
+        />
+        <ScrollView showsVerticalScrollIndicator={false}>
           <StatusBar backgroundColor={this.state.themeColors.statusbarcolor} barStyle="light-content" />
-          <View style={{ height: 130 }}>
-            <Slider></Slider>
-          </View>
+
+          {this.renderSlider()}
 
           <View style={styles.body}>
             <FlatList
-              data={products}
+              data={this.state.dataSource}
               renderItem={({ item }) =>
                 <ProductTheme1 navigation={navigation} item={item} addItemsToCart={this.addItemsToCart} product={item} />
               }
               keyExtractor={(item) => item.id}
               ItemSeparatorComponent={() => <View style={{ height: 5, backgroundColor: '#fff', }} />}
+              ListFooterComponent={this.renderFooter()}
             />
           </View>
-          {/* <TouchableOpacity onPress={getTheme()}> */}
-          <Text>ProductsTheme 1</Text>
-          {/* </TouchableOpacity> */}
         </ScrollView>
       </Container>
 
@@ -113,9 +180,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column'
   },
   body: {
-    marginTop: 75,
-
-    paddingVertical: 1
+    backgroundColor: '#eee',
+    alignItems: 'center',
+    paddingVertical: 5,
+    width: '100%'
 
   }
 });
