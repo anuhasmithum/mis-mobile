@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, FlatList, Alert, StyleSheet, Picker, TextInput, TouchableHighlight } from "react-native";
-import axios from "react-native-axios";
+import axios from "axios";
 import validate from "../utility/validation"
 import property from '../config'
 

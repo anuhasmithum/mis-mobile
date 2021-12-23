@@ -3,7 +3,7 @@ import { Alert, View, StatusBar, StyleSheet, TextInput, TouchableHighlight, Moda
 import validate from "../utility/validation"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Body, Header, Left, Text, Title } from "native-base";
-import axios from "react-native-axios";
+import axios from "axios";
 import property from '../config'
 
 const apiGetThemes = `${property.BASE_URL}getTheme`;
