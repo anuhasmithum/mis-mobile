@@ -1,30 +1,23 @@
 import React from "react";
 import { View, Text, ScrollView, FlatList, Alert, StyleSheet, Picker, TextInput, TouchableHighlight } from "react-native";
 import axios from "react-native-axios";
-//import PhoneInput from "react-native-phone-input";
-// import AsyncStorage from "@react-native-community/async-storage"
 import validate from "../utility/validation"
-const apiGetThemes = `http://192.168.8.100:3000/api/getTheme`;
+import property from '../config'
 
-
+const apiGetThemes = `${property.BASE_URL}getTheme`;
+const apiPostRegistorCustomer = `${property.BASE_URL}regcus`;
+const apiPostSendMail = `${property.BASE_URL}signupemailmgs`;
 
 export default class Signup extends React.Component {
   static navigationOptions = {
     drawerLabel: "Signup",
   };
-
-
   static navigationOptions = () => {
     return {
-
       headerTitle: 'SIGNUP',
-
       headerTitleStyle: { textAlign: 'center', marginLeft: -30, flexGrow: 1, alignSelf: 'center', },
-
     }
   }
-
-
   state = {
     errmsg: null,
     themeColors: '',
@@ -80,8 +73,6 @@ export default class Signup extends React.Component {
     }
   };
 
-
-
   componentDidMount = () => {
     axios.get(apiGetThemes).then(res => {
       const data = res.data;
@@ -91,9 +82,6 @@ export default class Signup extends React.Component {
     });
   }
 
-
-
-  ///////////////////////
   updateInputState = (key, value) => {
     let connectedValue = {};
     if (this.state.controls[key].validationRules.equalTo) {
@@ -139,17 +127,11 @@ export default class Signup extends React.Component {
       };
     });
   };
-  ///////////////////////////
-
-
-
-
-  // alert("Create Successful"); this.props.navigation.navigate('LoginScreen')
 
   signUp = () => {
 
     axios
-      .post(`http://192.168.8.100:3000/api/regcus`, {
+      .post(apiPostRegistorCustomer, {
         name: this.state.controls.name.value,
         email: this.state.controls.email.value,
         gender: this.state.controls.gender.value,
@@ -158,10 +140,12 @@ export default class Signup extends React.Component {
       })
       .then(res => {
         if (res.status === 200) {
-          Alert.alert(
-            "Done",
-            "Create Successfully"
-          )
+          this.sendtSuccessMessage()
+          this.props.navigation.navigate('LoginScreen')
+          // Alert.alert(
+          //   "Done",
+          //   "Create Successfully"
+          // )
         }
         if (res.status === 201) {
 
@@ -169,17 +153,35 @@ export default class Signup extends React.Component {
             "Oops",
             res.data.msg
           )
-
         }
-
-
-
       })
       .catch(err => {
         console.log(err);
         throw err;
       });
+  };
 
+  sendtSuccessMessage = () => {
+    // alert("sign up")
+    axios.post(apiPostSendMail, {
+      email: this.state.controls.email.value
+    })
+      .then(res => {
+        Alert.alert(
+          'Create Account',
+          JSON.stringify(res.data.message),
+          [
+            { text: 'OK', onPress: () => console.log('OK Pressed') },
+
+          ],
+          { cancelable: true },
+        );
+
+      })
+      .catch(err => {
+        console.log();
+        throw err;
+      });
   };
 
   render() {
@@ -189,9 +191,6 @@ export default class Signup extends React.Component {
 
         <ScrollView showsVerticalScrollIndicator={false} >
           <View style={styles.container}>
-
-
-
             <TextInput
               style={[styles.inputContainer, !this.state.controls.name.valid && this.state.controls.name.touched ? styles.inputInvalid : null]}
 
@@ -210,9 +209,6 @@ export default class Signup extends React.Component {
               underlineColorAndroid='transparent'
             />
             <Text style={!this.state.controls.email.valid && this.state.controls.email.touched ? styles.invalidMsg : styles.invalidMsgFalse} >Enter Valid Email Address</Text>
-
-
-
             <View style={{
               flex: 1,
               flexDirection: 'row',
@@ -287,7 +283,7 @@ export default class Signup extends React.Component {
               style={!(this.state.controls.name.valid && this.state.controls.email.valid && this.state.controls.gender.valid && this.state.controls.password.valid && this.state.controls.confirmPassword.valid) ? styles.buttonDisable : styles.buttonContainer}
               onPress={() => { this.signUp() }}>
 
-              <Text style={styles.loginText}>Sign Up</Text>
+              <Text style={{ color: '#eee', fontSize: 18, fontWeight: '600' }}>Sign Up</Text>
             </TouchableHighlight>
 
 
@@ -296,20 +292,12 @@ export default class Signup extends React.Component {
             <TouchableHighlight underlayColor='#e3d8dd' style={styles.btnsm} onPress={() => this.props.navigation.navigate('LoginScreen')}  >
               <Text>Login</Text>
             </TouchableHighlight>
-
-
           </View>
-
-
-
         </ScrollView>
       </View>
     );
   }
 }
-
-
-
 
 const styles = StyleSheet.create({
   icon: {
@@ -356,11 +344,9 @@ const styles = StyleSheet.create({
   },
 
   buttonContainer: {
-
     shadowColor: '#000',
     shadowOpacity: 50,
     elevation: 5,
-
     height: 45,
     backgroundColor: "red",
     flexDirection: 'row',
@@ -368,15 +354,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 35,
     marginTop: 30,
-    width: 200,
+    width: 160,
     borderRadius: 30,
   },
   buttonDisable: {
     shadowColor: '#000',
     shadowOpacity: 50,
     elevation: 5,
-
-
     height: 45,
     backgroundColor: "gray",
     flexDirection: 'row',
@@ -384,12 +368,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 35,
     marginTop: 30,
-    width: 200,
+    width: 160,
     borderRadius: 30,
   },
-
-
-
   inputContainer: {
     borderBottomColor: '#F5FCFF',
     backgroundColor: '#FFFFFF',
@@ -411,11 +392,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'red'
   },
-
   invalidMsgFalse: {
     color: "#EEEEEE",
     fontSize: 12
   }
-
-
 });

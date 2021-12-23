@@ -1,21 +1,30 @@
 import React, { Component } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Alert
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import Swipeout from 'react-native-swipeout';
+import { FontAwesome5 } from '@expo/vector-icons'; 
+
 import { removeItem } from '../../app/redux/actions/cartActions';
+import { addQuantity } from '../../app/redux/actions/cartActions';
+import { subtractQuantity } from '../../app/redux/actions/cartActions';
+
 
 
 class CartItems extends Component {
     state = {
         activeRowKey: null
     }
+
+    handleAddQuantity = (item) => {
+        this.props.addQuantity(item);
+    }
+
+    handleSubtractQuantity = (item) => {
+        this.props.subtractQuantity(item);
+    }
+
     render() {
+        const { item, index, addQuantity, subtractQuantity, removeItem } = this.props;
         const swipeSettings = {
             autoClose: true,
             onClose: (secId, rowId, direction) => { this.setState({ activeRowKey: null }) },
@@ -29,7 +38,7 @@ class CartItems extends Component {
                             'Are you sure you want to delete?',
                             [
                                 { text: 'No', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
-                                { text: 'Yes', onPress: () => { this.props.removeItem({ index: this.props.index, item: this.props.item }) } },
+                                { text: 'Yes', onPress: () => { this.props.removeItem(item) } },
                             ],
                             { cancelable: true }
                         )
@@ -40,14 +49,27 @@ class CartItems extends Component {
             rowId: this.props.index,
             sectionId: 1
         }
-        const { item, index } = this.props;
+
         return (
             <Swipeout {...swipeSettings}>
                 <View style={styles.container}>
 
                     <View style={styles.productDes}>
+                        <TouchableOpacity
+                            onPress={(item) => { this.handleSubtractQuantity(item)}}
+                        >
+                            <FontAwesome5 name='minus' size={32} />
+                        </TouchableOpacity>
+
                         <Text style={styles.text}>{item.productName}</Text>
-                        <Text style={styles.text}>Rs. {item.price}/=</Text>{/* <Text style={styles.text}>Rs.{(item.price).toFixed(2)}</Text> */}
+                        <Text style={styles.text}>Rs.{(item.price).toFixed(2)}</Text>
+                        <Text>{item.quantity}</Text>
+
+                        <TouchableOpacity
+                            onPress={(item) => this.handleAddQuantity(item)}
+                        >
+                            <FontAwesome5 name='plus' size={32} />
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Swipeout>
@@ -60,13 +82,15 @@ const styles = StyleSheet.create({
     },
     productDes: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'space-around',
         alignItems: 'center',
         margin: 10,
     },
     text: {
-        fontSize: 14,
-        padding: 10
+        fontSize: 17,
+        padding: 10,
+        fontWeight: '400'
     }
 });
-export default connect(null, { removeItem })(CartItems);
+
+export default connect(null, { removeItem, addQuantity, subtractQuantity })(CartItems);

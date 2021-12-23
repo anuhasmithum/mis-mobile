@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View} from "react-native";
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import Icon from '@expo/vector-icons/dist/FontAwesome';
 
 class Layout extends Component {
     onActionSelected = position =>  {

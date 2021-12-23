@@ -3,19 +3,19 @@ import { connect } from 'react-redux';
 import { StatusBar } from 'react-native'
 import CheckoutItems from '../components/CheckoutItems.component';
 import { Body, Button, Container, Header, Icon, Left, Right, Text, Title } from "native-base";
-import getTheme from '../styles/theme.style'
+
 
 import axios from "axios"
-const apiGetThemes = `http://192.168.8.100:3000/api/getTheme`;
+import property from '../../config'
+
+const apiGetThemes = `${property.BASE_URL}getTheme`;
 
 
 export class Checkout extends Component {
 
     state = {
         themeColors: ''
-
     }
-
     componentDidMount = () => {
         axios.get(apiGetThemes).then(res => {
             const data = res.data;
@@ -26,7 +26,7 @@ export class Checkout extends Component {
     }
 
     renderHeaderIcon = () => {
-        
+
         if (this.state.themeColors.theme === 'theme1') {
             return (
 
@@ -53,30 +53,26 @@ export class Checkout extends Component {
         }
     }
 
+    renderHeader = () => {
+        return (
+            <Header style={{ backgroundColor: this.state.themeColors.color }}>
+                <Left>
+                    {this.renderHeaderIcon()}
+                </Left>
+                <Body>
+                    <Title>Checkout </Title>
+                </Body>
+            </Header>
+        )
+    }
+
     render() {
         const { cartItems, navigation, cartTotal } = this.props;
-        // const headerColors = {headerColor}.color
-        // const statusbarcolor = {headerColor}.statusbarcolor
         return (
             <Container>
-
-                <Header style={{ backgroundColor: this.state.themeColors.color }}>
-                    <Left>
-                        {this.renderHeaderIcon()}
-                    </Left>
-                    <Body>
-                        <Title>Checkout </Title>
-                    </Body>
-                    <Right>
-                        {/* <Button hasText transparent onPress={() => this.props.navigation.navigate('Dashboard3')}>
-                            <Text>Cancel</Text>
-                        </Button> */}
-                    </Right>
-                </Header>
-
+                {this.renderHeader()}
                 <StatusBar backgroundColor={this.state.themeColors.statusbarcolor} barStyle="light-content" />
                 <CheckoutItems cartItems={cartItems} cartTotal={cartTotal} navigation={navigation} />
-
             </Container>
         );
     }
@@ -88,6 +84,4 @@ const mapStateToProps = (state) => ({
 });
 
 
-export default connect(
-    mapStateToProps
-)(Checkout);
+export default connect(mapStateToProps)(Checkout);

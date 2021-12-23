@@ -7,5 +7,3 @@ export default combineReducers({
     cart: cartReducer,
     order: orderReducer
 })
-
-

@@ -2,10 +2,15 @@ import React, { Component } from 'react';
 import { StyleSheet, View, FlatList, StatusBar } from 'react-native';
 import { Body, Button, Container, Header, Icon, Left, Right, Text, Title } from "native-base";
 import { connect } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import OrderSummary from '../components/OrderSummary.component';
 import Cart from '../components/Cart.component';
 import axios from "axios"
-const apiGetThemes = `http://192.168.8.100:3000/api/getTheme`;
+import property from '../../config'
+
+
+const apiInsertOrder = `${property.BASE_URL}addOrder`;
+const apiGetThemes = `${property.BASE_URL}getTheme`;
 
 
 class Receipt extends Component {
@@ -29,66 +34,121 @@ class Receipt extends Component {
         }).catch((error) => {
             console.error(`Error reddda is : ${error}`);
         });
+
+
+        this.getToken().then(res => {
+            this.sendOrderToBackend(res)
+        })
     }
 
+    getToken = async () => {
+        const Token = await AsyncStorage.getItem('token')
+        return Token
+    };
+
+    sendOrderToBackend = (token) => {
+        const { items, customer } = this.props
+
+        const Token = 'Bearer ' + token;
+        var headers = {
+            'Content-Type': 'application/json',
+            'Authorization': Token
+        }
+
+        axios.post(apiInsertOrder, {
+            customername: customer.name,
+            email: customer.email,
+            telephone: customer.phone,
+            deliveraddress: customer.street,
+            orderitems: items,
+
+        }, { headers: headers })
+            .then(res => {
+                if (res.status === 200) {
+                    // alert('order passed successfully')
+                } else {
+                    alert("Error : order didnt pass to server")
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                throw err;
+            });
+
+    };
 
     getTotal() {
         let total = 0;
         const { items } = this.props;
 
         for (let i = 0; i < items.length; i++) {
-            total = total + items[i].price
+            total = total + items[i].price * items[i].quantity
         }
 
-        return <Text style={styles.totText}>Total: Rs. {total}/=</Text>
-        // <Text style={styles.totText}>Total: ${(total).toFixed(2)}</Text>
+        return <Text style={{
+            textAlign: 'center',
+            color: 'red',
+            fontWeight: '900',
+            fontSize: 20
+        }}>Total : Rs. {(total).toFixed(2)}</Text>
     }
 
     renderHeaderIcon = () => {
-        
+
         if (this.state.themeColors.theme === 'theme1') {
             return (
-
                 <Icon name="arrow-back" style={{ color: 'white' }}
-                    onPress={() => this.props.navigation.navigate('Dashboard')} />
-
+                    onPress={() => this.props.navigation.navigate('Dashboard1')} />
             )
         }
         else if (this.state.themeColors.theme === 'theme2') {
             return (
-
                 <Icon name="arrow-back" style={{ color: 'white' }}
                     onPress={() => this.props.navigation.navigate('Dashboard2')} />
-
             )
         }
         else if (this.state.themeColors.theme === 'theme3') {
             return (
-
                 <Icon name="arrow-back" style={{ color: 'white' }}
                     onPress={() => this.props.navigation.navigate('Dashboard3')} />
+            )
+        }
+    }
+    renderTextAction = () => {
+        if (this.state.themeColors.theme === 'theme1') {
+            return (
+                this.props.navigation.navigate('Dashboard1')
+            )
+        }
+        else if (this.state.themeColors.theme === 'theme2') {
+            return (
+                this.props.navigation.navigate('Dashboard2')
+            )
+        }
+        else if (this.state.themeColors.theme === 'theme3') {
+            return (
+                this.props.navigation.navigate('Dashboard3')
 
             )
         }
     }
 
-
     render() {
-        const headerColor = 'black'
-        const statusbarcolor = 'black'
+
         const { customer, items, navigation } = this.props;
+
         return (
 
             <Container>
                 <Header style={{ backgroundColor: this.state.themeColors.color }}>
                     <Left>
-                       {this.renderHeaderIcon()}
+                        {this.renderHeaderIcon()}
                     </Left>
                     <Body>
                         <Title>Purchase Details</Title>
                     </Body>
                     <Right>
-                        <Button hasText transparent onPress={() => this.props.navigation.navigate('Dashboard1')}>
+                        <Button hasText transparent onPress={() => this.renderTextAction()}>
                             <Text>ok</Text>
                         </Button>
                     </Right>
@@ -98,20 +158,43 @@ class Receipt extends Component {
 
                 <View style={styles.container}>
                     <StatusBar backgroundColor={this.state.themeColors.statusbarcolor} barStyle="light-content" />
-                    {/* <View style={styles.headings}>
-                        <Text>Invoice for your purchase</Text>
-                    </View> */}
+
                     <View style={styles.billings}>
-                        <Text style={styles.billtext}>Billing details</Text>
-                        <Text style={styles.text}>{customer.name}</Text>
-                        <Text style={styles.text}>{customer.phone}</Text>
-                        <Text style={styles.text}>{customer.email}</Text>
-                        <Text style={styles.text}>{customer.street}</Text>
+                        <View style={{
+                            backgroundColor: '#aaf',
+                            shadowColor: '#000',
+                            shadowOpacity: 50,
+                            height: 40,
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            alignSelf: 'center',
+                            marginBottom: 10,
+                            width: 380,
+                        }}>
+                            <Text style={{ color: 'white' }}>Billing details</Text></View>
+                        <Text style={styles.text}> Customer Name : {customer.name}</Text>
+                        <Text style={styles.text}> Phone : {customer.phone}</Text>
+                        <Text style={styles.text}> Address : {customer.street}</Text>
                     </View>
 
 
                     <View style={styles.orderSumm}>
-                        <Text style={styles.billtext}>Order summary</Text>
+                        <View style={{
+                            backgroundColor: '#aaf',
+                            shadowColor: '#000',
+                            shadowOpacity: 50,
+                            height: 35,
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            alignSelf: 'center',
+                            marginBottom: 10,
+                            marginTop: 30,
+                            width: 380,
+                        }}>
+                            <Text style={{ color: 'white' }}>Order summary</Text>
+                        </View>
                         <FlatList
                             data={items}
                             renderItem={({ item }) =>
@@ -126,13 +209,11 @@ class Receipt extends Component {
 
                     </View>
                 </View>
-
-
             </Container>
-
         );
     }
 }
+
 const styles = StyleSheet.create({
     container: {
         flex: 1
@@ -162,16 +243,18 @@ const styles = StyleSheet.create({
         marginVertical: 5
     },
     billings: {
-        height: 180,
-        margin: 10
+        height: 150,
+        // margin: 10
     },
     totText: {
         textAlign: 'center',
         color: 'red'
     }
 });
+
 const mapStateToProps = (state) => ({
     customer: state.order.order.customer,
     items: state.order.order.items
 })
+
 export default connect(mapStateToProps)(Receipt);

@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import { View, Text, ActivityIndicator, ImageBackground } from 'react-native'
-import AsyncStorage from "@react-native-community/async-storage"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Spinner } from 'native-base';
-
 import axios from "axios"
-const apiGetThemes = `http://192.168.8.100:3000/api/getTheme`;
-const apiGetLoadingTheme = 'http://192.168.8.100:3000/api/getloadpage'
+import property from '../config'
+
+const apiGetThemes = `${property.BASE_URL}getTheme`;
+const apiGetLoadingTheme = `${property.BASE_URL}getloadpage`
 
 
 class CheckAuth extends Component {
@@ -23,7 +24,7 @@ class CheckAuth extends Component {
 
     this.abc().then(res => {
       this.setState({ theme: res })
-      this._bootstrapAsync();              //  this should be uncomment
+      this._bootstrapAsync();              //   uncomment to view loading screen
     })
   }
 
@@ -34,11 +35,8 @@ class CheckAuth extends Component {
   }
 
   abc = async () => {
-    // alert(" inside abc function")
     const res = await axios.get(apiGetThemes);
     let data = res.data;
-    // alert(data)
-    //this.setState({ theme: data.theme })
     return data.theme
 
   };
@@ -58,15 +56,15 @@ class CheckAuth extends Component {
     const userToken = await AsyncStorage.getItem('token');
     if (userToken) {
 
-      if (this.state.theme == "theme1")
+      if (this.state.theme == "theme1") {
         this.props.navigation.navigate('Dashboard1');
-
-      if (this.state.theme == "theme2")
+      }
+      if (this.state.theme == "theme2") {
         this.props.navigation.navigate('Dashboard2');
-
-      if (this.state.theme == "theme3")
+      }
+      if (this.state.theme == "theme3") {
         this.props.navigation.navigate('Dashboard3');
-
+      }
     }
 
     else {
@@ -78,7 +76,7 @@ class CheckAuth extends Component {
 
   render() {
     return (
-      <ImageBackground source={{ uri: `http://192.168.8.100:3000/api/imgs/${this.state.loadingTheme.imgName}` }} style={{ width: '100%', height: '100%' }}>
+      <ImageBackground source={{ uri: `${property.BASE_URL}imgs/${this.state.loadingTheme.imgName}` }} style={{ width: '100%', height: '100%' }}>
 
 
         <View style={{ display: "flex", marginTop: 200, alignItems: "center", justifyContent: "center" }}>

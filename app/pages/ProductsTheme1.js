@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, StatusBar, Text, ActivityIndicator } from '
 import { connect } from 'react-redux';
 import ProductTheme1 from '../components/ProductsTheme1.component';
 import { addToCart } from '../redux/actions/cartActions';
-import { fetchProducts } from '../../android/redux/actions/productAction';
+import { fetchProducts } from '../redux/actions/productAction';
 import Cart from '../components/Cart.component';
 import { Body, Container, Header, Icon, Left, Title, Right, } from "native-base";
 import { SearchBar } from 'react-native-elements';
@@ -19,39 +19,28 @@ class ProductsTheme1 extends Component {
 
   constructor(props) {
     super(props);
-
   }
   state = {
     themeColors: '',
     isLoading: true,
     search: '',
-    sliderbox: ''
-
+    searchedDta: []
   }
 
-  // addToCart = () => {
-  //   // this.props.addItemsToCart(this.props.item)
-  // }
-
   componentDidMount = () => {
-
     axios.get(apiGetThemes).then(res => {
       const data = res.data;
       this.setState({ themeColors: data })
-      this.setState({ sliderbox: data.sbox })
     }).catch((error) => {
       console.error(`Error reddda is : ${error}`);
     });
 
-
     this.props.fetchProducts();
-
-    //////////////////////////////////////////////
 
     axios.get(apiGetProduct).then(res => {
 
       const dataProducts = res.data;
-      this.setState({ dataSource: dataProducts })
+      this.setState({ dataSource: dataProducts, searchedDta: dataProducts })
     }).catch((error) => {
       console.error(`Error reddda is : ${error}`);
     });
@@ -61,39 +50,25 @@ class ProductsTheme1 extends Component {
     this.props.addToCart(product);
   }
 
-  //////////////////////////////////////////////////////
-
   SearchFilterFunction(text) {
-    const { products } = this.props
-    this.setState({ sliderbox: false })
-    //passing the inserted text in textinput
+    const products = this.state.searchedDta
     const newData = products.filter(function (item) {
-      //applying filter for the inserted text in search bar
       const itemData = item.productName ? item.productName.toUpperCase() : ''.toUpperCase();
       const textData = text.toUpperCase();
       return itemData.indexOf(textData) > -1;
     });
 
     this.setState({
-      //setting the filtered newData on datasource
-      //After setting the data it will automatically re-render the view
       dataSource: newData,
       search: text,
       isLoading: false
     });
-    if (!text) {
-      this.setState({ sliderbox: true })
-    }
-
   }
-
-  /////////////////////////////////////////////////////////////
 
   renderHeader = () => {
     const { navigation } = this.props
     return (
       <Header style={{ backgroundColor: this.state.themeColors.color }} >
-
         <Left style={{ flexDirection: 'row' }}>
           <Icon onPress={() => this.props.navigation.openDrawer()} name="md-menu" style={{ color: 'white', marginRight: 15 }} />
         </Left>
@@ -110,7 +85,6 @@ class ProductsTheme1 extends Component {
 
 
   renderSlider = () => {
-
     if (this.state.themeColors.sbox) {
       return (
         <View style={{ flex: 1, height: 'auto' }}>
@@ -121,27 +95,18 @@ class ProductsTheme1 extends Component {
   }
 
   renderFooter = () => {
-    // if (this.state.loading) return null;
-
     return (
-      <View
-        style={{ paddingVertical: 3, borderTopWidth: 1, borderColor: "#aaa", backgroundColor: '#ccc' }}
-      >
+      <View style={{ paddingVertical: 3, borderTopWidth: 1, borderColor: "#aaa", backgroundColor: '#ccc' }}>
         <ActivityIndicator animating size='small' />
       </View>
     )
   }
-  ////////////////////////////////////////////////////////////////////////////
 
   render() {
     const { products, navigation } = this.props
-
     return (
-
       <Container style={{ flexDirection: 'column', }}>
-
         {this.renderHeader()}
-
         <SearchBar
           round
           searchIcon={{ size: 24 }}
@@ -169,11 +134,10 @@ class ProductsTheme1 extends Component {
           </View>
         </ScrollView>
       </Container>
-
-
     );
   }
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -184,22 +148,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 5,
     width: '100%'
-
   }
 });
+
 const mapStateToProps = (state) => ({
   products: state.products.items
 })
+
 export default connect(mapStateToProps, { addToCart, fetchProducts })(ProductsTheme1);
-
-
-
-
-
-
-
-
-
-
-
-

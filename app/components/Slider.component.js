@@ -1,26 +1,27 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Platform, } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Slideshow from 'react-native-slideshow';
 import axios from "axios";
-const apiGetSliderProps = `http://192.168.8.100:3000/api/getsimg`;
+import property from '../../config'
 
+const apiGetSliderProps = `${property.BASE_URL}getsimg`;
 
-
-export default class Slider extends Component {
-    constructor() {
-        super();
+export default class Sliders extends Component {
+    constructor(props) {
+        super(props);
         this.state = {
-            position: 1,
+            index: 1,
             interval: null,
             dataArray: [],
-            dataProps: []
+            dataProps: [],
         };
     }
+
     componentWillMount() {
         this.setState({
             interval: setInterval(() => {
                 this.setState({
-                    position: this.state.position === sliderProps.imagesArray.length ? 0 : this.state.position + 1
+                    index: this.state.index === this.state.dataArray.length ? 0 : this.state.index + 1
                 });
             }, 3000)
         });
@@ -28,18 +29,24 @@ export default class Slider extends Component {
         this.renderPropsFromServer().then(res => {
             this.renderSliderProps(res);
         })
-
     }
 
     componentWillUnmount() {
         clearInterval(this.state.interval);
-
         this.renderPropsFromServer().then(res => {
             this.renderSliderProps(res);
         })
     }
 
-    ////////////////////////////////////////////////////////////
+    renderIndex = () => {
+        this.setState({
+            interval: setInterval(() => {
+                this.setState({
+                    index: this.state.index === this.state.dataArray.length ? 0 : this.state.index + 1
+                });
+            }, 3000)
+        });
+    }
 
     renderPropsFromServer = async () => {
         const res = await axios.get(apiGetSliderProps);
@@ -47,48 +54,38 @@ export default class Slider extends Component {
     }
 
     renderSliderProps = (res) => {
-
         const dataArrays = []
-        // alert(JSON.stringify(res) + 'there are renderSliderProps')                 // work
         this.setState({ dataProps: res })
         const data = this.state.dataProps
-        // alert(JSON.stringify(data))
-
         for (i = 0; i < data.length; i++) {
-            const newObj = {                                                            // Change your required detail here
-                url: `http://192.168.8.100:3000/api/imgs/${this.state.dataProps[i].img}`,
-                title: this.state.dataProps[i].title,
-                caption: this.state.dataProps[i].description
-            }
-            dataArrays.push(newObj);
-            // alert(JSON.stringify(dataArrays)+"ssssssssssssss")
+            dataArrays.push(`${property.BASE_URL}imgs/${this.state.dataProps[i].img}`);
         }
         this.setState({ dataArray: dataArrays })
     }
-    
-/////////////////////////////////////////////////////////////////
 
     render() {
-        // const images = sliderProps.imagesArray;
         return (
-            <View style={styles.MainContainer}>
+            <View style={styles.container}>
                 <Slideshow
-                    dataSource={this.state.dataArray}
-                    position={this.state.position}
+                    images={this.state.dataArray}
+                    sliderBoxHeight={150}
+                    index={this.state.index}
                     onPositionChanged={position => this.setState({ position })}
+                    onCurrentImagePressed={index =>
+                        this.renderIndex()
+                    }
+                    dotColor="#FFEE58"
+                    inactiveDotColor="#90A4AE"
+                    circleLoop
                 />
             </View>
         );
     }
 }
+
 const styles = StyleSheet.create({
-    MainContainer: {
+    container: {
         flex: 1,
-        alignItems: 'center',
-        paddingTop: (Platform.OS) === 'ios' ? 20 : 0,
-        backgroundColor: '#FFF8E1'
+        backgroundColor: '#239'
     }
 });
-
-
-

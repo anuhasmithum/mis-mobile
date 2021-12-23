@@ -9,7 +9,8 @@ import {
 import { withNavigation } from 'react-navigation'
 
 import { connect } from 'react-redux'
-import Icon from 'react-native-vector-icons/Ionicons'
+import { Ionicons } from '@expo/vector-icons'; 
+
 
 const ShoppingCartIcon = (props) => (
     <View style={[{ padding: 5 }, Platform.OS == 'android' ? styles.iconContainer : null]}>
@@ -19,7 +20,7 @@ const ShoppingCartIcon = (props) => (
         }}>
             <Text style={{ color: 'white', fontWeight: 'bold' }}>{props.cartItems.length}</Text>
         </View>
-        <Icon onPress={() => props.navigation.navigate('Cart')} name="ios-cart" size={30} />
+        <Ionicons onPress={() => props.navigation.navigate('Cart')} name="ios-cart" size={30} />
     </View>
 )
 
